@@ -5,9 +5,7 @@ import {
   Text,
   ScrollView,
   AsyncStorage,
-  TextInput,
-  KeyboardAvoidingView,
-  TouchableHighlight
+  KeyboardAvoidingView
 } from 'react-native';
 
 import styles, {
@@ -15,6 +13,8 @@ import styles, {
   buttonUnderlay
 } from './styles';
 
+import AddButton from './AddButton';
+import AddInput from './AddInput';
 import Todo from './Todo';
 import Footer from './Footer';
 
@@ -72,6 +72,14 @@ export default class App extends React.Component {
     this.setState({ scrollEnabled: false });
   }
 
+  onFocusInput(editing) {
+    this.setState({ editing });
+  }
+
+  onInput(input) {
+    this.setState({ input });
+  }
+
   async onReleaseTodo(todoId, config) {
     this.scrollView.scrollTo({ y: 0, animate: true });
     const todoIndex = this.state.todos.findIndex(t => t.id === todoId);
@@ -85,33 +93,6 @@ export default class App extends React.Component {
 
     await this.storeTodos(todos);
     this.setState({ scrollEnabled: true, todos });
-  }
-
-  renderInput() {
-    return (
-      <View {...shadowProps} style={styles.inputContainer}>
-        <TextInput {...shadowProps} style={this.state.input.length > 0 ? styles.textInputFocused : styles.textInput}
-          onFocus={() => this.setState({ editing: true })}
-          onBlur={() => this.setState({ editing: false })}
-          placeholder={'What needs to be done?'}
-          value={this.state.input}
-          onChangeText={(input) => this.setState({ input })} />
-      </View>
-    );
-  }
-
-  renderAddButton() {
-    if (!this.state.editing) {
-      return;
-    }
-
-    return (
-      <TouchableHighlight style={styles.addButton}
-        onPress={this.addTodo.bind(this)}
-        underlayColor={buttonUnderlay}>
-        <Text style={styles.addText}>Add Todo</Text>
-      </TouchableHighlight>
-    );
   }
 
   componentDidMount() {
@@ -136,14 +117,14 @@ export default class App extends React.Component {
       <View style={styles.appContainer}>
         <KeyboardAvoidingView style={styles.appWrapper} behavior='padding'>
           <Text style={styles.headerText}>todos</Text>
-          {this.renderInput()}
+          <AddInput onFocus={this.onFocusInput.bind(this)} onInput={this.onInput.bind(this)} input={this.state.input} />
           <View style={styles.scrollContainer}>
             <ScrollView ref={(ref) => this.scrollView = ref}
               style={{flex: 1}} scrollEnabled={this.state.scrollEnabled}>
               {todos.map(t => <Todo {...t} key={t.id} {...todoHandlers} />)}
             </ScrollView>
           </View>
-          {this.renderAddButton()}
+          {this.state.editing ? <AddButton addTodo={this.addTodo.bind(this)}/> : null}
         </KeyboardAvoidingView>
         <Footer onChangeTab={this.onChangeTab.bind(this)} selectedTab={this.state.selectedTab} />
       </View>
