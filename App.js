@@ -9,8 +9,7 @@ import {
 } from 'react-native';
 
 import styles, {
-  shadowProps,
-  buttonUnderlay
+  shadowProps
 } from './styles';
 
 import AddButton from './AddButton';
@@ -19,16 +18,13 @@ import Todo from './Todo';
 import Footer from './Footer';
 
 export default class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      todos: [],
-      selectedTab: 'active',
-      scrollEnabled: true,
-      editing: false,
-      loading: true,
-      input: ''
-    }
+  state = {
+    todos: [],
+    selectedTab: 'active',
+    scrollEnabled: true,
+    editing: false,
+    loading: true,
+    input: ''
   }
 
   async storeTodos(todos) {
@@ -64,6 +60,21 @@ export default class App extends React.Component {
     }));
   }
 
+  async onReleaseTodo(todoId, config) {
+    this.scrollView.scrollTo({ y: 0, animate: true });
+    const todoIndex = this.state.todos.findIndex(t => t.id === todoId);
+    const todos = [ ...this.state.todos ];
+
+    if (config.remove) {
+      todos.splice(todoIndex, 1);
+    } else if (config.complete) {
+      todos[todoIndex].completed = true;
+    }
+
+    await this.storeTodos(todos);
+    this.setState({ scrollEnabled: true, todos });
+  }
+
   onChangeTab(selectedTab) {
     this.setState({ selectedTab });
   }
@@ -80,19 +91,10 @@ export default class App extends React.Component {
     this.setState({ input });
   }
 
-  async onReleaseTodo(todoId, config) {
-    this.scrollView.scrollTo({ y: 0, animate: true });
-    const todoIndex = this.state.todos.findIndex(t => t.id === todoId);
-    const todos = [ ...this.state.todos ];
-
-    if (config.remove) {
-      todos.splice(todoIndex, 1);
-    } else if (config.complete) {
-      todos[todoIndex].completed = true;
-    }
-
-    await this.storeTodos(todos);
-    this.setState({ scrollEnabled: true, todos });
+  getTodos() {
+    return this.state.todos.filter(todo => {
+      return this.state.selectedTab === 'active' ? todo.completed === false : todo.completed === true;
+    });
   }
 
   componentDidMount() {
@@ -109,10 +111,6 @@ export default class App extends React.Component {
       onReleaseTodo: this.onReleaseTodo.bind(this)
     };
 
-    const todos = this.state.todos.filter(todo => {
-      return this.state.selectedTab === 'active' ? todo.completed === false : todo.completed === true;
-    });
-
     return (
       <View style={styles.appContainer}>
         <KeyboardAvoidingView style={styles.appWrapper} behavior='padding'>
@@ -121,7 +119,7 @@ export default class App extends React.Component {
           <View style={styles.scrollContainer}>
             <ScrollView ref={(ref) => this.scrollView = ref}
               style={{flex: 1}} scrollEnabled={this.state.scrollEnabled}>
-              {todos.map(t => <Todo {...t} key={t.id} {...todoHandlers} />)}
+              {this.getTodos().map(t => <Todo {...t} key={t.id} {...todoHandlers} />)}
             </ScrollView>
           </View>
           {this.state.editing ? <AddButton addTodo={this.addTodo.bind(this)}/> : null}
