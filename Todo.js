@@ -42,6 +42,7 @@ export default class Todo extends React.Component {
     Animated.timing(this.translateX, { toValue: finalValue, useNativeDriver: true }).start(() => {
       this.setState({ backgroundColor: backgroundColors.default });
       this.props.onReleaseTodo(this.props.id, { remove, complete });
+      this.translateX.setValue(0);
     });
   }
 
@@ -73,12 +74,6 @@ export default class Todo extends React.Component {
       onPanResponderRelease: (evt, gestureState) => this.onReleaseTodo(),
       onShouldBlockNativeResponder: (evt, gestureState) => true
     });
-  }
-
-  componentDidUpdate() {
-    if (this.props.completed) {
-      this.translateX.setValue(0);
-    }
   }
 
   render() {

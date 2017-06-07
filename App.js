@@ -68,7 +68,7 @@ export default class App extends React.Component {
     if (config.remove) {
       todos.splice(todoIndex, 1);
     } else if (config.complete) {
-      todos[todoIndex].completed = true;
+      todos[todoIndex].completed = !todos[todoIndex].completed;
     }
 
     await this.storeTodos(todos);
